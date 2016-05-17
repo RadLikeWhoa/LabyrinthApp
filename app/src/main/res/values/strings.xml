@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LabyrinthApp</string>
+    <string name="connect_explanation">Hi, press button to connect to the labyrinth with the default settings shown below, otherwise edit the fields.</string>
+    <string name="ip_label">IP Address:</string>
+    <string name="port_label">IP Port:</string>
+    <string name="connect">Connect</string>
+</resources>
