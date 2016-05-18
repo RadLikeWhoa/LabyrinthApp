@@ -6,6 +6,17 @@
     android:background="@color/colorBackground"
     tools:context="ch.fhnw.labyrinthapp.MainActivity">
 
+    <ch.fhnw.labyrinthapp.DrawView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/view"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/button2" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
