@@ -1,5 +1,6 @@
 package ch.fhnw.labyrinthapp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -9,7 +10,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     private Handler surfaceThreadHandler;
 
     @Override
