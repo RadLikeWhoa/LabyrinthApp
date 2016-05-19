@@ -4,38 +4,118 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 public class DrawView extends View {
-    Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint paint = new Paint();
+    private Path path = new Path();
+    private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight;
+    private boolean moveYellowCircle = false;
 
     public DrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
-    }
 
-    public DrawView(Context context) {
-        super(context);
+        //TextView v = (TextView) findViewById(R.id.)
+
+        paint.setAntiAlias(true);
+        paint.setStrokeWidth(6f);
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeJoin(Paint.Join.ROUND);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        canvasHeight = canvas.getHeight();
+        canvasWidth = canvas.getWidth();
+
+        centerX = canvas.getWidth() / 2;
+        centerY = canvas.getHeight() / 2;
+
+        if (moveYellowCircle) {
+            paint.setColor(Color.WHITE);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(5);
+
+            canvas.drawCircle(centerX, centerY, 40, paint);
+
+            paint.setColor(Color.YELLOW);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setStrokeWidth(0);
+
+            canvas.drawCircle(eventX, eventY, 30, paint);
+        } else {
+            paint.setColor(Color.WHITE);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(5);
+
+            canvas.drawCircle(centerX, centerY, 40, paint);
+
+            paint.setColor(Color.YELLOW);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setStrokeWidth(0);
+
+            canvas.drawCircle(centerX, centerY, 30, paint);
+        }
+
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(5);
+        paint.setStrokeWidth(10);
 
-        final float centerX = canvas.getWidth() / 2;
-        final float centerY = canvas.getHeight() / 2;
+        canvas.drawPath(path, paint);
+    }
 
-        canvas.drawCircle(centerX, centerY, 40, paint);
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        eventX = event.getX();
+        eventY = event.getY();
+        moveYellowCircle = true;
 
-        paint.setColor(Color.YELLOW);
-        paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(0);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
 
-        canvas.drawCircle(centerX, centerY, 30, paint);
+                path.reset();
+                path.moveTo(centerX, centerY);
+                if (eventX > canvasWidth) eventX = canvasWidth;
+                if (eventX < 0) eventX = 0;
+                if (eventY > canvasHeight) eventY = canvasHeight;
+                if (eventY < 0) eventY = 0;
+                path.lineTo(eventX, eventY);
+
+                break;
+            case MotionEvent.ACTION_MOVE:
+
+                path.reset();
+                path.moveTo(centerX, centerY);
+                if (eventX > canvasWidth) eventX = canvasWidth;
+                if (eventX < 0) eventX = 0;
+                if (eventY > canvasHeight) eventY = canvasHeight;
+                if (eventY < 0) eventY = 0;
+                path.lineTo(eventX, eventY);
+
+                break;
+            case MotionEvent.ACTION_UP:
+                moveYellowCircle = false;
+                path.reset();
+
+                break;
+            default:
+
+                return false;
+        }
+
+        // Schedules a repaint.
+        invalidate();
+        return true;
     }
 }
