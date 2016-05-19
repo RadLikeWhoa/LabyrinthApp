@@ -54,6 +54,12 @@ public class DrawView extends View {
             paint.setStrokeWidth(0);
 
             canvas.drawCircle(eventX, eventY, 30, paint);
+
+            paint.setColor(Color.WHITE);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(10);
+
+            canvas.drawPath(path, paint);
         } else {
             paint.setColor(Color.WHITE);
             paint.setStyle(Paint.Style.STROKE);
@@ -67,12 +73,6 @@ public class DrawView extends View {
 
             canvas.drawCircle(centerX, centerY, 30, paint);
         }
-
-        paint.setColor(Color.WHITE);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10);
-
-        canvas.drawPath(path, paint);
     }
 
     @Override
