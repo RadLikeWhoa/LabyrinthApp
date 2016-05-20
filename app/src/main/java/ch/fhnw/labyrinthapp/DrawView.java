@@ -45,6 +45,9 @@ public class DrawView extends View {
         xTo180 = eventX / (canvasWidth / 180);
         yTo180 = eventY / (canvasHeight / 180);
 
+        System.out.println(xTo180);
+        System.out.println(yTo180);
+
         if (moveYellowCircle) {
             paint.setColor(Color.WHITE);
             paint.setStyle(Paint.Style.STROKE);
