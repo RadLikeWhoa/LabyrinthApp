@@ -17,7 +17,7 @@ import org.w3c.dom.Text;
 public class DrawView extends View {
     private Paint paint = new Paint();
     private Path path = new Path();
-    private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight;
+    private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight, xTo180, yTo180;
     private boolean moveYellowCircle = false;
 
     public DrawView(Context context, AttributeSet attrs) {
@@ -41,6 +41,9 @@ public class DrawView extends View {
 
         centerX = canvas.getWidth() / 2;
         centerY = canvas.getHeight() / 2;
+
+        xTo180 = eventX / (canvasWidth / 180);
+        yTo180 = eventY / (canvasHeight / 180);
 
         if (moveYellowCircle) {
             paint.setColor(Color.WHITE);
