@@ -22,8 +22,8 @@ public class ConnectActivity extends AppCompatActivity {
         TextView ipPort = (TextView) findViewById(R.id.ipPortTextView);
 
         if (ipAddr != null && ipPort != null) {
-            intent.putExtra("ipAddress", ipAddr.getText());
-            intent.putExtra("ipPort", ipPort.getText());
+            intent.putExtra("ipAddress", ipAddr.getText().toString());
+            intent.putExtra("ipPort", ipPort.getText().toString());
         }
 
         startActivity(intent);

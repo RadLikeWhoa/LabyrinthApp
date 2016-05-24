@@ -5,14 +5,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
-import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DrawView extends View {
     private Paint paint = new Paint();
@@ -20,10 +18,14 @@ public class DrawView extends View {
     private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight, xTo180, yTo180;
     private boolean moveYellowCircle = false;
 
+    public interface DrawViewCallbackInterface {
+        void handleDraw(int posX, int posY);
+    }
+
+    private List<DrawViewCallbackInterface> observers = new ArrayList<>();
+
     public DrawView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        //TextView v = (TextView) findViewById(R.id.)
 
         paint.setAntiAlias(true);
         paint.setStrokeWidth(6f);
@@ -45,8 +47,9 @@ public class DrawView extends View {
         xTo180 = eventX / (canvasWidth / 180);
         yTo180 = eventY / (canvasHeight / 180);
 
-        System.out.println(xTo180);
-        System.out.println(yTo180);
+        for (DrawViewCallbackInterface dwci : observers) {
+            dwci.handleDraw((int) xTo180, (int) yTo180);
+        }
 
         if (moveYellowCircle) {
             paint.setColor(Color.WHITE);
@@ -123,5 +126,9 @@ public class DrawView extends View {
         // Schedules a repaint.
         invalidate();
         return true;
+    }
+
+    public void addObserver(DrawViewCallbackInterface dwci) {
+        observers.add(dwci);
     }
 }
