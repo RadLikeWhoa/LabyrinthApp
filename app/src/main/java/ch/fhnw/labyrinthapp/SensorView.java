@@ -5,18 +5,27 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SensorView extends View {
+public class SensorView extends View implements SensorEventListener {
     private Paint paint = new Paint();
     private Path path = new Path();
-    private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight, xTo180, yTo180;
-    private boolean moveYellowCircle = false;
+    private float eventX = -1, eventY = -1, centerX, centerY, canvasWidth, canvasHeight;
+    private int xTo180, yTo180;
+
+    private SensorManager manager;
+    private Sensor accelerometer;
 
     public interface DrawViewCallbackInterface {
         void handleDraw(int posX, int posY);
@@ -44,91 +53,69 @@ public class SensorView extends View {
         centerX = canvas.getWidth() / 2;
         centerY = canvas.getHeight() / 2;
 
-        xTo180 = eventX / (canvasWidth / 180);
-        yTo180 = eventY / (canvasHeight / 180);
+        if (eventX == -1 || eventY == -1) {
+            eventX = centerX;
+            eventY = centerY;
+        }
+
+        xTo180 = (int) (180 * (eventX / 20));
+        yTo180 = (int) (180 * (eventY / 20));
+
+        eventX = canvasWidth * (eventX / 20);
+        eventY = canvasHeight * (eventY / 20);
 
         for (DrawViewCallbackInterface dwci : observers) {
-            dwci.handleDraw((int) xTo180, (int) yTo180);
+            dwci.handleDraw(xTo180, yTo180);
         }
 
-        if (moveYellowCircle) {
-            paint.setColor(Color.WHITE);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(5);
+        paint.setColor(Color.WHITE);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
 
-            canvas.drawCircle(centerX, centerY, 40, paint);
+        canvas.drawCircle(centerX, centerY, 40, paint);
 
-            paint.setColor(Color.YELLOW);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setStrokeWidth(0);
+        paint.setColor(Color.YELLOW);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(0);
 
-            canvas.drawCircle(eventX, eventY, 30, paint);
+        canvas.drawCircle(eventX, eventY, 30, paint);
 
-            paint.setColor(Color.WHITE);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(10);
+        path.reset();
+        path.moveTo(centerX, centerY);
+        path.lineTo(eventX, eventY);
 
-            canvas.drawPath(path, paint);
-        } else {
-            paint.setColor(Color.WHITE);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(5);
+        paint.setColor(Color.YELLOW);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(20);
 
-            canvas.drawCircle(centerX, centerY, 40, paint);
-
-            paint.setColor(Color.YELLOW);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setStrokeWidth(0);
-
-            canvas.drawCircle(centerX, centerY, 30, paint);
-        }
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        eventX = event.getX();
-        eventY = event.getY();
-        moveYellowCircle = true;
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-
-                path.reset();
-                path.moveTo(centerX, centerY);
-                if (eventX > canvasWidth) eventX = canvasWidth;
-                if (eventX < 0) eventX = 0;
-                if (eventY > canvasHeight) eventY = canvasHeight;
-                if (eventY < 0) eventY = 0;
-                path.lineTo(eventX, eventY);
-
-                break;
-            case MotionEvent.ACTION_MOVE:
-
-                path.reset();
-                path.moveTo(centerX, centerY);
-                if (eventX > canvasWidth) eventX = canvasWidth;
-                if (eventX < 0) eventX = 0;
-                if (eventY > canvasHeight) eventY = canvasHeight;
-                if (eventY < 0) eventY = 0;
-                path.lineTo(eventX, eventY);
-
-                break;
-            case MotionEvent.ACTION_UP:
-                moveYellowCircle = false;
-                path.reset();
-
-                break;
-            default:
-
-                return false;
-        }
-
-        // Schedules a repaint.
-        invalidate();
-        return true;
+        canvas.drawPath(path, paint);
     }
 
     public void addObserver(DrawViewCallbackInterface dwci) {
         observers.add(dwci);
     }
+
+    public void addSensor(SensorManager manager, Sensor accelerometer) {
+        this.manager = manager;
+        this.accelerometer = accelerometer;
+
+        manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    long lastSaved = System.currentTimeMillis();
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        if ((System.currentTimeMillis() - lastSaved) > 100) {
+            lastSaved = System.currentTimeMillis();
+
+            eventX = sensorEvent.values[0] * -1 + 10;
+            eventY = sensorEvent.values[1] + 10;
+
+            invalidate();
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {}
 }

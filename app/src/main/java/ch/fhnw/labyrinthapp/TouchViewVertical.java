@@ -40,13 +40,12 @@ public class TouchViewVertical extends View {
 
         if (eventY == -1) {
             eventY = centerY;
-            yTo180 = (int) (eventY / (canvasHeight / 180));
-        } else {
-            yTo180 = (int) (eventY / (canvasHeight / 180));
+        }
 
-            for (DrawViewCallbackInterface dwci : observers) {
-                dwci.handleDraw(yTo180);
-            }
+        yTo180 = (int) (eventY / (canvasHeight / 180));
+
+        for (DrawViewCallbackInterface dwci : observers) {
+            dwci.handleDraw(yTo180);
         }
 
         paint.setColor(Color.WHITE);

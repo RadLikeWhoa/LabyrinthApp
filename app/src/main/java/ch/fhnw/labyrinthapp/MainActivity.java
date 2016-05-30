@@ -5,9 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.view.View;
 
 import oscP5.OscMessage;
 import oscP5.OscP5;
@@ -22,6 +26,9 @@ public class MainActivity extends Activity {
     private SensorView sensorView;
     private TouchViewHorizontal touchViewH;
     private TouchViewVertical touchViewV;
+
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +47,11 @@ public class MainActivity extends Activity {
         final Context that = this;
 
         if (sensorView != null) {
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+            sensorView.addSensor(sensorManager, accelerometer);
+
             sensorView.addObserver(new SensorView.DrawViewCallbackInterface() {
                 @Override
                 public void handleDraw(int posX, int posY) {
