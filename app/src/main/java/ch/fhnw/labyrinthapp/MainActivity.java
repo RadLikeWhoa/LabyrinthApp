@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import oscP5.OscMessage;
 import oscP5.OscP5;
@@ -20,14 +19,18 @@ public class MainActivity extends Activity {
     private String ipAddr;
     private int ipPort;
 
-    private DrawView dv;
+    private SensorView sensorView;
+    private TouchViewHorizontal touchViewH;
+    private TouchViewVertical touchViewV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        dv = (DrawView) findViewById(R.id.view);
+        sensorView = (SensorView) findViewById(R.id.view);
+        touchViewH = (TouchViewHorizontal) findViewById(R.id.horizontalView);
+        touchViewV = (TouchViewVertical) findViewById(R.id.verticalView);
 
         Intent intent = getIntent();
 
@@ -36,17 +39,43 @@ public class MainActivity extends Activity {
 
         final Context that = this;
 
-        dv.addObserver(new DrawView.DrawViewCallbackInterface() {
-            @Override
-            public void handleDraw(int posX, int posY) {
-                Intent intent = new Intent("input");
+        if (sensorView != null) {
+            sensorView.addObserver(new SensorView.DrawViewCallbackInterface() {
+                @Override
+                public void handleDraw(int posX, int posY) {
+                    Intent intent = new Intent("input");
 
-                intent.putExtra("posX", posX);
-                intent.putExtra("posY", posY);
+                    intent.putExtra("posX", posX);
+                    intent.putExtra("posY", posY);
 
-                LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
-            }
-        });
+                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
+                }
+            });
+        } else if (touchViewH != null && touchViewV != null) {
+            touchViewV.addObserver(new TouchViewVertical.DrawViewCallbackInterface() {
+                @Override
+                public void handleDraw(int posY) {
+                    Intent intent = new Intent("input");
+
+                    intent.putExtra("posX", touchViewH.getValue());
+                    intent.putExtra("posY", posY);
+
+                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
+                }
+            });
+
+            touchViewH.addObserver(new TouchViewHorizontal.DrawViewCallbackInterface() {
+                @Override
+                public void handleDraw(int posX) {
+                    Intent intent = new Intent("input");
+
+                    intent.putExtra("posX", posX);
+                    intent.putExtra("posY", touchViewV.getValue());
+
+                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
+                }
+            });
+        }
     }
 
     @Override

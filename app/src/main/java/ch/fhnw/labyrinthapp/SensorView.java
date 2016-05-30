@@ -12,7 +12,7 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DrawView extends View {
+public class SensorView extends View {
     private Paint paint = new Paint();
     private Path path = new Path();
     private float eventX, eventY, centerX, centerY, canvasWidth, canvasHeight, xTo180, yTo180;
@@ -24,7 +24,7 @@ public class DrawView extends View {
 
     private List<DrawViewCallbackInterface> observers = new ArrayList<>();
 
-    public DrawView(Context context, AttributeSet attrs) {
+    public SensorView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         paint.setAntiAlias(true);
