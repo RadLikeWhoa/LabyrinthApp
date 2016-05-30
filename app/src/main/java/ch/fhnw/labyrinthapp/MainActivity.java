@@ -1,15 +1,26 @@
 package ch.fhnw.labyrinthapp;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+
+import oscP5.OscMessage;
+import oscP5.OscP5;
+import oscP5.OscProperties;
 
 public class MainActivity extends Activity {
-    private DrawView dv;
+    private OscP5 oscP5;
 
-    private Handler workerThreadHandler;
+    private String ipAddr;
+    private int ipPort;
+
+    private DrawView dv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,32 +31,66 @@ public class MainActivity extends Activity {
 
         Intent intent = getIntent();
 
-        CommThread ct = new CommThread("commThread", intent.getStringExtra("ipAddress"), Integer.parseInt(intent.getStringExtra("ipPort")));
-        workerThreadHandler = ct.getHandler();
+        ipAddr = intent.getStringExtra("ipAddress");
+        ipPort = Integer.parseInt(intent.getStringExtra("ipPort"));
+
+        final Context that = this;
 
         dv.addObserver(new DrawView.DrawViewCallbackInterface() {
             @Override
             public void handleDraw(int posX, int posY) {
-                Message msg = workerThreadHandler.obtainMessage();
-                msg.what = 1;
+                Intent intent = new Intent("input");
 
-                Bundle b = new Bundle();
-                b.putSerializable("posX", posX);
-                b.putSerializable("posY", posY);
+                intent.putExtra("posX", posX);
+                intent.putExtra("posY", posY);
 
-                msg.setData(b);
-
-                msg.sendToTarget();
+                LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
             }
         });
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("input"));
+        new OscAsyncTask().execute();
+    }
 
-        Message msg = workerThreadHandler.obtainMessage();
-        msg.what = 2;
-        msg.sendToTarget();
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+    }
+
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int x = intent.getIntExtra("posX", 0);
+            int y = intent.getIntExtra("posY", 0);
+
+            OscMessage msg = new OscMessage("Labyrinth");
+
+            msg.add(0);
+            msg.add(x);
+            msg.add(1);
+            msg.add(y);
+
+            if (oscP5 != null) {
+                oscP5.send(msg);
+            }
+        }
+    };
+
+    private class OscAsyncTask extends AsyncTask<OscMessage, Integer, Void> {
+        protected Void doInBackground(OscMessage... msg) {
+            OscProperties properties = new OscProperties();
+
+            properties.setNetworkProtocol(OscProperties.TCP);
+            properties.setRemoteAddress(ipAddr, ipPort);
+
+            oscP5 = new OscP5(this, properties);
+
+            return null;
+        }
     }
 }
