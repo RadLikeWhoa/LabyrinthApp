@@ -8,23 +8,8 @@ import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class TouchViewHorizontal extends View {
-    private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private Path path = new Path();
-    private float eventX = -1, centerX, centerY, canvasWidth;
-    private int xTo180;
-
-    public interface DrawViewCallbackInterface {
-        void handleDraw(int posX);
-    }
-
-    private List<DrawViewCallbackInterface> observers = new ArrayList<>();
-
+public class TouchViewHorizontal extends GameView {
     public TouchViewHorizontal(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -40,13 +25,12 @@ public class TouchViewHorizontal extends View {
 
         if (eventX == -1) {
             eventX = centerX;
-            xTo180 = (int) (eventX / (canvasWidth / 180));
-        } else {
-            xTo180 = (int) (eventX / (canvasWidth / 180));
+        }
 
-            for (DrawViewCallbackInterface dwci : observers) {
-                dwci.handleDraw(xTo180);
-            }
+        xTo180 = (int) (eventX / (canvasWidth / 180));
+
+        for (PositionUpdateInterface pui: observers) {
+            pui.handlePositionUpdate(xTo180, -1);
         }
 
         paint.setColor(Color.WHITE);
@@ -102,13 +86,5 @@ public class TouchViewHorizontal extends View {
 
         invalidate();
         return true;
-    }
-
-    public void addObserver(DrawViewCallbackInterface dwci) {
-        observers.add(dwci);
-    }
-
-    public int getValue() {
-        return xTo180;
     }
 }

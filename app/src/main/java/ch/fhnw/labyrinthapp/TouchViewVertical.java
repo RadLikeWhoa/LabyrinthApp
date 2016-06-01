@@ -8,23 +8,8 @@ import android.graphics.Path;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class TouchViewVertical extends View {
-    private Paint paint = new Paint();
-    private Path path = new Path();
-    private float eventY = -1, centerX, centerY, canvasHeight;
-    private int yTo180;
-
-    public interface DrawViewCallbackInterface {
-        void handleDraw(int posY);
-    }
-
-    private List<DrawViewCallbackInterface> observers = new ArrayList<>();
-
+public class TouchViewVertical extends GameView {
     public TouchViewVertical(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -44,8 +29,8 @@ public class TouchViewVertical extends View {
 
         yTo180 = (int) (eventY / (canvasHeight / 180));
 
-        for (DrawViewCallbackInterface dwci : observers) {
-            dwci.handleDraw(yTo180);
+        for (PositionUpdateInterface pui : observers) {
+            pui.handlePositionUpdate(-1, yTo180);
         }
 
         paint.setColor(Color.WHITE);
@@ -101,13 +86,5 @@ public class TouchViewVertical extends View {
 
         invalidate();
         return true;
-    }
-
-    public void addObserver(DrawViewCallbackInterface dwci) {
-        observers.add(dwci);
-    }
-
-    public int getValue() {
-        return yTo180;
     }
 }

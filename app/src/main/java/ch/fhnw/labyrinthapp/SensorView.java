@@ -5,33 +5,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class SensorView extends View implements SensorEventListener {
-    private Paint paint = new Paint();
-    private Path path = new Path();
-    private float eventX = -1, eventY = -1, centerX, centerY, canvasWidth, canvasHeight;
-    private int xTo180, yTo180;
-
+public class SensorView extends GameView implements SensorEventListener {
     private SensorManager manager;
     private Sensor accelerometer;
-
-    public interface DrawViewCallbackInterface {
-        void handleDraw(int posX, int posY);
-    }
-
-    private List<DrawViewCallbackInterface> observers = new ArrayList<>();
 
     public SensorView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -64,8 +47,8 @@ public class SensorView extends View implements SensorEventListener {
         eventX = canvasWidth * (eventX / 20);
         eventY = canvasHeight * (eventY / 20);
 
-        for (DrawViewCallbackInterface dwci : observers) {
-            dwci.handleDraw(xTo180, yTo180);
+        for (PositionUpdateInterface pui : observers) {
+            pui.handlePositionUpdate(xTo180, yTo180);
         }
 
         paint.setColor(Color.WHITE);
@@ -91,15 +74,18 @@ public class SensorView extends View implements SensorEventListener {
         canvas.drawPath(path, paint);
     }
 
-    public void addObserver(DrawViewCallbackInterface dwci) {
-        observers.add(dwci);
-    }
-
     public void addSensor(SensorManager manager, Sensor accelerometer) {
         this.manager = manager;
         this.accelerometer = accelerometer;
 
         manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    public void removeSensor() {
+        manager.unregisterListener(this, accelerometer);
+
+        manager = null;
+        accelerometer = null;
     }
 
     long lastSaved = System.currentTimeMillis();

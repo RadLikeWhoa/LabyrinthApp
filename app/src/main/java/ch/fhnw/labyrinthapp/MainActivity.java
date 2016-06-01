@@ -27,8 +27,7 @@ public class MainActivity extends Activity {
     private TouchViewHorizontal touchViewH;
     private TouchViewVertical touchViewV;
 
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
+    private int lastX, lastY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,64 +42,61 @@ public class MainActivity extends Activity {
 
         ipAddr = intent.getStringExtra("ipAddress");
         ipPort = Integer.parseInt(intent.getStringExtra("ipPort"));
-
-        final Context that = this;
-
-        if (sensorView != null) {
-            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-            sensorView.addSensor(sensorManager, accelerometer);
-
-            sensorView.addObserver(new SensorView.DrawViewCallbackInterface() {
-                @Override
-                public void handleDraw(int posX, int posY) {
-                    Intent intent = new Intent("input");
-
-                    intent.putExtra("posX", posX);
-                    intent.putExtra("posY", posY);
-
-                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
-                }
-            });
-        } else if (touchViewH != null && touchViewV != null) {
-            touchViewV.addObserver(new TouchViewVertical.DrawViewCallbackInterface() {
-                @Override
-                public void handleDraw(int posY) {
-                    Intent intent = new Intent("input");
-
-                    intent.putExtra("posX", touchViewH.getValue());
-                    intent.putExtra("posY", posY);
-
-                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
-                }
-            });
-
-            touchViewH.addObserver(new TouchViewHorizontal.DrawViewCallbackInterface() {
-                @Override
-                public void handleDraw(int posX) {
-                    Intent intent = new Intent("input");
-
-                    intent.putExtra("posX", posX);
-                    intent.putExtra("posY", touchViewV.getValue());
-
-                    LocalBroadcastManager.getInstance(that).sendBroadcast(intent);
-                }
-            });
-        }
     }
+
+    private PositionUpdateInterface updateInterface = new PositionUpdateInterface() {
+        @Override
+        public void handlePositionUpdate(int posX, int posY) {
+            Intent intent = new Intent("input");
+
+            if (posX > -1) {
+                lastX = posX;
+            }
+
+            if (posY > -1) {
+                lastY = posY;
+            }
+
+            intent.putExtra("posX", lastX);
+            intent.putExtra("posY", lastY);
+
+            LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(intent);
+        }
+    };
 
     @Override
     protected void onResume() {
         super.onResume();
+
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter("input"));
+
         new OscAsyncTask().execute();
+
+        if (sensorView != null) {
+            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+            sensorView.addSensor(sensorManager, accelerometer);
+            sensorView.addObserver(updateInterface);
+        } else if (touchViewH != null && touchViewV != null) {
+            touchViewV.addObserver(updateInterface);
+            touchViewH.addObserver(updateInterface);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+
+        if (sensorView != null) {
+            sensorView.removeSensor();
+            sensorView.removeObserver(updateInterface);
+        } else if (touchViewH != null && touchViewV != null) {
+            touchViewV.removeObserver(updateInterface);
+            touchViewH.removeObserver(updateInterface);
+        }
     }
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
