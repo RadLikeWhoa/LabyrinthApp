@@ -16,6 +16,8 @@ public class SensorView extends GameView implements SensorEventListener {
     private SensorManager manager;
     private Sensor accelerometer;
 
+    private float eventX = 10, eventY = 10;
+
     public SensorView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -36,16 +38,13 @@ public class SensorView extends GameView implements SensorEventListener {
         centerX = canvas.getWidth() / 2;
         centerY = canvas.getHeight() / 2;
 
-        if (eventX == -1 || eventY == -1) {
-            eventX = centerX;
-            eventY = centerY;
-        }
+        Log.i("sensor", eventX + " " + eventY);
 
         xTo180 = (int) (180 * (eventX / 20));
         yTo180 = (int) (180 * (eventY / 20));
 
-        eventX = canvasWidth * (eventX / 20);
-        eventY = canvasHeight * (eventY / 20);
+        float targetX = canvasWidth * (eventX / 20);
+        float targetY = canvasHeight * (eventY / 20);
 
         for (PositionUpdateInterface pui : observers) {
             pui.handlePositionUpdate(xTo180, yTo180);
@@ -61,11 +60,11 @@ public class SensorView extends GameView implements SensorEventListener {
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(0);
 
-        canvas.drawCircle(eventX, eventY, 30, paint);
+        canvas.drawCircle(targetX, targetY, 30, paint);
 
         path.reset();
         path.moveTo(centerX, centerY);
-        path.lineTo(eventX, eventY);
+        path.lineTo(targetX, targetY);
 
         paint.setColor(Color.YELLOW);
         paint.setStyle(Paint.Style.STROKE);
@@ -82,10 +81,19 @@ public class SensorView extends GameView implements SensorEventListener {
     }
 
     public void removeSensor() {
-        manager.unregisterListener(this, accelerometer);
+        if (manager != null) {
+            manager.unregisterListener(this, accelerometer);
 
-        manager = null;
-        accelerometer = null;
+            manager = null;
+            accelerometer = null;
+        }
+    }
+
+    public void resetCanvas() {
+        eventX = 10;
+        eventY = 10;
+
+        invalidate();
     }
 
     long lastSaved = System.currentTimeMillis();

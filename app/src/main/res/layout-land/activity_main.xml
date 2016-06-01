@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:background="@color/colorBackground"
     tools:context="ch.fhnw.labyrinthapp.MainActivity"
-    android:weightSum="2">
+    android:weightSum="2"
+    android:keepScreenOn="true">
 
     <TextView
         android:layout_width="5dp"
