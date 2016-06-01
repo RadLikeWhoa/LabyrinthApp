@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -37,8 +36,6 @@ public class SensorView extends GameView implements SensorEventListener {
 
         centerX = canvas.getWidth() / 2;
         centerY = canvas.getHeight() / 2;
-
-        Log.i("sensor", eventX + " " + eventY);
 
         xTo180 = (int) (180 * (eventX / 20));
         yTo180 = (int) (180 * (eventY / 20));

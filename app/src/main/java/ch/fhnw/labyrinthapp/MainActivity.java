@@ -5,8 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
@@ -48,7 +46,13 @@ public class MainActivity extends Activity {
         Intent intent = getIntent();
 
         ipAddr = intent.getStringExtra("ipAddress");
-        ipPort = Integer.parseInt(intent.getStringExtra("ipPort"));
+
+        try {
+            ipPort = Integer.parseInt(intent.getStringExtra("ipPort"));
+        } catch (NumberFormatException nfe) {
+            setResult(-2, new Intent());
+            finish();
+        }
     }
 
     private PositionUpdateInterface updateInterface = new PositionUpdateInterface() {
@@ -129,7 +133,12 @@ public class MainActivity extends Activity {
             properties.setNetworkProtocol(OscProperties.TCP);
             properties.setRemoteAddress(ipAddr, ipPort);
 
-            oscP5 = new OscP5(this, properties);
+            try {
+                oscP5 = new OscP5(this, properties);
+            } catch (Exception iae) {
+                setResult(-2, new Intent());
+                finish();
+            }
 
             return null;
         }
